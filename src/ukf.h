@@ -34,6 +34,9 @@ public:
   ///* time when the state is true, in us
   long long time_us_;
 
+  // previous timestamp
+  long long previous_timestamp_;
+
   ///* Process noise standard deviation longitudinal acceleration in m/s^2
   double std_a_;
 
@@ -64,8 +67,14 @@ public:
   ///* Augmented state dimension
   int n_aug_;
 
+  ///* Number of sigma points
+  int n_sigma_points_;
+
   ///* Sigma point spreading parameter
   double lambda_;
+
+  std::vector<double> LIDAR_NIS;
+  std::vector<double> RADAR_NIS;
 
 
   /**
@@ -79,29 +88,47 @@ public:
   virtual ~UKF();
 
   /**
+   * Normalizes an angle to be between -PI and PI
+   * @param x Angle in radians to normalize
+   */
+  double normalizeAngle(double x);
+
+  /**
+  * A helper method to print NIS including % over threshold and mean
+  */
+  void ShowNIS(const std::string type,const std::vector<double> &v, const double threshold);
+
+  /**
    * ProcessMeasurement
    * @param meas_package The latest measurement data of either radar or laser
    */
-  void ProcessMeasurement(MeasurementPackage meas_package);
+  void ProcessMeasurement(const MeasurementPackage meas_package);
+
+  /**
+   * Generates sigma points around latest estimation, and predicts sigma points after 
+   * a given time delta.
+   * @param delta_t Time between k and k+1 in s
+   */
+  void GenerateSigmaPoints(const double delta_t);
 
   /**
    * Prediction Predicts sigma points, the state, and the state covariance
    * matrix
    * @param delta_t Time between k and k+1 in s
    */
-  void Prediction(double delta_t);
+  void Prediction(const double delta_t);
 
   /**
    * Updates the state and the state covariance matrix using a laser measurement
    * @param meas_package The measurement at k+1
    */
-  void UpdateLidar(MeasurementPackage meas_package);
+  void UpdateLidar(const MeasurementPackage meas_package);
 
   /**
    * Updates the state and the state covariance matrix using a radar measurement
    * @param meas_package The measurement at k+1
    */
-  void UpdateRadar(MeasurementPackage meas_package);
+  void UpdateRadar(const MeasurementPackage meas_package);
 };
 
 #endif /* UKF_H */
